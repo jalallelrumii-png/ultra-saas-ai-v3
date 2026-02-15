@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Groq from "groq-sdk";
-import { Sparkles, Send, RefreshCw, Cpu, Cloud, Terminal, Zap, AlertCircle } from "lucide-react";
+import { Sparkles, RefreshCw, Cloud, Terminal, Zap, AlertCircle } from "lucide-react";
 
-// TIPE DATA BIAR VS CODE GAK MERAH
+// --- 1. DEFINISI TIPE DATA (SOLUSI BIAR GAK MERAH) ---
 interface AIHistory {
   id: number;
   prompt: string;
@@ -13,13 +13,13 @@ interface AIHistory {
   created_at: string;
 }
 
-// KREDENSIAL CLOUD (DARI SCREENSHOT LU)
+// --- 2. KREDENSIAL CLOUD (SESUAI PROJECT LU) ---
 const supabase = createClient(
   "https://nhmmocpypgsofihbltpi.supabase.co", 
   "sb_publishable_SNq_Hd5hGbzaAFJGli6Dgw_0bKNAwDF"
 );
 
-// GANTI PAKAI API KEY GROQ LU!!
+// MASUKKIN API KEY GROQ LU DI SINI!!
 const GROQ_API_KEY = "GANTI_PAKE_KEY_GROQ_LU"; 
 
 const groq = new Groq({ 
@@ -31,9 +31,11 @@ export default function GeminiSaaSFinal() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<AIHistory[]>([]); // Tipe data udah dikunci
+  // Pake <AIHistory[]> biar history.map gak error lagi
+  const [history, setHistory] = useState<AIHistory[]>([]); 
   const [errorStatus, setErrorStatus] = useState("");
 
+  // Fungsi Tarik Data dari Supabase
   const fetchCloud = async () => {
     try {
       const { data, error } = await supabase
@@ -42,14 +44,15 @@ export default function GeminiSaaSFinal() {
         .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;
-      setHistory(data || []);
+      setHistory((data as AIHistory[]) || []);
     } catch (err: any) {
-      setErrorStatus("Sync Error: Cek koneksi cloud.");
+      setErrorStatus("Gagal tarik data cloud.");
     }
   };
 
   useEffect(() => { fetchCloud(); }, []);
 
+  // Eksekusi AI + Simpan ke Cloud
   const handleExecute = async () => {
     if (!input.trim()) return;
     setLoading(true);
@@ -63,6 +66,7 @@ export default function GeminiSaaSFinal() {
 
       const aiResponse = chat.choices[0]?.message?.content || "";
 
+      // Simpan ke tabel ai_generations yang udah lu buat tadi
       const { error: syncError } = await supabase.from("ai_generations").insert([
         { prompt: input, response: aiResponse }
       ]);
@@ -73,7 +77,7 @@ export default function GeminiSaaSFinal() {
       setInput("");
       fetchCloud(); 
     } catch (err: any) {
-      setErrorStatus(err.message || "Gagal memproses.");
+      setErrorStatus(err.message || "Gagal proses.");
     } finally {
       setLoading(false);
     }
@@ -81,16 +85,16 @@ export default function GeminiSaaSFinal() {
 
   return (
     <div className="min-h-screen bg-[#09090b] text-[#fafafa] font-sans flex">
-      {/* Sidebar Gemini Black */}
+      {/* Sidebar Gemini Style */}
       <aside className="w-72 h-screen bg-[#0d0d10] border-r border-[#1f1f23] p-6 hidden md:flex flex-col">
-        <div className="flex items-center gap-3 font-bold text-xl mb-10 text-white tracking-tighter">
+        <div className="flex items-center gap-3 font-bold text-xl mb-10 tracking-tighter">
           <Cloud className="w-5 h-5 text-blue-500" />
-          <span>CloudAI</span>
+          <span>SyncEngine</span>
         </div>
         
         <nav className="flex-1 space-y-2">
           <div className="p-3 bg-[#1c1c21] rounded-xl flex items-center gap-3 border border-[#2d2d33] text-sm">
-            <Terminal className="w-4 h-4 text-blue-400" /> Dashboard Ready
+            <Terminal className="w-4 h-4 text-blue-400" /> Cloud Sync Active
           </div>
         </nav>
 
@@ -103,31 +107,31 @@ export default function GeminiSaaSFinal() {
 
         <div className="p-4 bg-[#121217] border border-[#1f1f23] rounded-2xl">
           <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest flex items-center justify-center gap-2">
-            <Zap className="w-3 h-3 fill-blue-400" /> SQL Active
+            <Zap className="w-3 h-3 fill-blue-400" /> Database Ready
           </p>
         </div>
       </aside>
 
-      {/* Main UI */}
+      {/* Main Content */}
       <main className="flex-1 max-w-4xl mx-auto p-6 md:p-12">
-        <h1 className="text-5xl font-black tracking-tighter mb-4 uppercase italic">SaaS Engine</h1>
-        <p className="text-xl text-[#71717a] mb-12">Hitam Gemini, Otak Groq, Cloud Supabase.</p>
+        <h1 className="text-6xl font-black tracking-tighter mb-4 italic uppercase text-white">Cloud AI</h1>
+        <p className="text-xl text-[#71717a] mb-12">Integrasi Groq & Supabase Cloud.</p>
 
         {/* Input Box */}
         <div className="relative group mb-12">
           <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[30px] blur opacity-10 group-focus-within:opacity-25 transition"></div>
-          <div className="relative bg-[#121217] p-2 rounded-[28px] border border-[#27272a] flex items-center shadow-2xl">
+          <div className="relative bg-[#121217] p-2 rounded-[28px] border border-[#27272a] flex items-center">
             <input 
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Groq anything..."
-              className="flex-1 bg-transparent p-4 outline-none text-white text-lg placeholder-[#3f3f46]"
+              placeholder="Ketik sesuatu..."
+              className="flex-1 bg-transparent p-4 outline-none text-white text-lg"
               onKeyDown={(e) => e.key === 'Enter' && handleExecute()}
             />
             <button 
               onClick={handleExecute}
               disabled={loading}
-              className="bg-white text-black h-14 px-8 rounded-2xl hover:bg-[#d4d4d8] transition-all disabled:opacity-50 font-black"
+              className="bg-white text-black h-14 px-8 rounded-2xl hover:bg-zinc-300 transition-all font-black"
             >
               {loading ? <RefreshCw className="animate-spin w-5 h-5" /> : "EXECUTE"}
             </button>
@@ -138,27 +142,25 @@ export default function GeminiSaaSFinal() {
         {result && (
           <div className="bg-[#0d0d10] border border-[#27272a] p-8 rounded-[32px] mb-10 shadow-2xl animate-in fade-in slide-in-from-bottom-2">
             <div className="flex items-center gap-2 text-blue-400 font-bold text-xs mb-6 uppercase tracking-widest">
-              <Sparkles className="w-4 h-4" /> Cloud Sync Response
+              <Sparkles className="w-4 h-4" /> Response Saved to Cloud
             </div>
-            <div className="text-[17px] leading-relaxed text-[#e4e4e7] whitespace-pre-wrap font-light">{result}</div>
+            <div className="text-[17px] leading-relaxed text-[#e4e4e7] whitespace-pre-wrap">{result}</div>
           </div>
         )}
 
-        {/* Sync History - FIXED RED LINES */}
+        {/* Sync History - TYPESCRIPT SAFE */}
         <section>
-          <h3 className="font-bold text-[#3f3f46] uppercase tracking-[0.2em] text-[10px] mb-4 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Cloud Storage Logs
-          </h3>
+          <h3 className="font-bold text-[#3f3f46] uppercase tracking-[0.2em] text-[10px] mb-4">Cloud Data Logs</h3>
           <div className="space-y-2">
             {history.length > 0 ? (
               history.map((h) => (
                 <div key={h.id} className="bg-[#121217]/50 border border-[#1f1f23] p-4 rounded-xl flex justify-between items-center group hover:border-blue-500/30 transition">
-                  <p className="text-sm text-[#d4d4d8] truncate max-w-md italic opacity-60 group-hover:opacity-100">"{h.prompt}"</p>
-                  <span className="text-[10px] text-[#3f3f46] font-mono tracking-tighter uppercase">Cloud Synced</span>
+                  <p className="text-sm text-[#d4d4d8] truncate max-w-md italic opacity-60">"{h.prompt}"</p>
+                  <span className="text-[10px] text-[#3f3f46] font-mono">Synced</span>
                 </div>
               ))
             ) : (
-              <div className="py-10 border border-dashed border-[#1f1f23] rounded-3xl text-center text-[#3f3f46] text-xs">Database masih kosong.</div>
+              <div className="py-10 border border-dashed border-[#1f1f23] rounded-3xl text-center text-[#3f3f46] text-xs">Belum ada history di cloud.</div>
             )}
           </div>
         </section>
