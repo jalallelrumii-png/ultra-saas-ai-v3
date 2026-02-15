@@ -20,7 +20,7 @@ export default function GuestManager() {
   }, [masterData]);
 
   const tanyaAI = async () => {
-    if (!pertanyaan) return alert("Tanya apa dulu anjing!");
+    if (!pertanyaan) return alert("Isi pertanyaannya dulu, Bos!");
     setLoading(true);
     setJawaban("");
     try {
@@ -54,18 +54,33 @@ export default function GuestManager() {
             <h1 className="text-3xl font-black tracking-tighter text-blue-500">ULTRA AI SAAS V1</h1>
             <p className="text-[10px] text-zinc-500 tracking-[0.3em] uppercase">Enterprise Data Assistant</p>
           </div>
-          <button 
-            onClick={() => setShowPanel(!showPanel)}
-            className="text-xs bg-zinc-800 px-4 py-2 rounded-full hover:bg-zinc-700 transition font-bold"
-          >
-            {showPanel ? "TUTUP DATA" : "EDIT MASTER DATA"}
-          </button>
+          
+          {/* TOMBOL RESET & TUTUP DATA DISINI */}
+          <div className="flex gap-2">
+            <button 
+              onClick={() => {
+                if(confirm("Hapus semua data tamu?")) {
+                  setMasterData("");
+                  localStorage.removeItem("masterDataTamu");
+                }
+              }}
+              className="text-[10px] bg-red-900/20 text-red-500 px-3 py-2 rounded-full hover:bg-red-900/40 transition border border-red-500/20 font-bold"
+            >
+              RESET
+            </button>
+            <button 
+              onClick={() => setShowPanel(!showPanel)}
+              className="text-xs bg-zinc-800 px-4 py-2 rounded-full hover:bg-zinc-700 transition font-bold text-blue-400"
+            >
+              {showPanel ? "TUTUP DATA" : "EDIT DATA"}
+            </button>
+          </div>
         </div>
 
         {/* Master Data Panel */}
         {showPanel && (
           <div className="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 animate-in fade-in duration-500">
-            <label className="block text-xs font-bold mb-2 uppercase tracking-widest text-zinc-500">
+            <label className="block text-xs font-bold mb-2 uppercase tracking-widest text-zinc-500 text-left">
               Input Source Data (Excel/Text)
             </label>
             <textarea
@@ -81,7 +96,7 @@ export default function GuestManager() {
         <div className="space-y-4">
           <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
-            <label className="block text-xs font-bold mb-3 uppercase text-blue-400 tracking-widest">
+            <label className="block text-xs font-bold mb-3 uppercase text-blue-400 tracking-widest text-left">
               Tanya Asisten AI
             </label>
             <div className="flex gap-3">
@@ -102,9 +117,9 @@ export default function GuestManager() {
             </div>
           </div>
 
-          {/* Jawaban AI */}
+          {/* Jawaban AI & Tombol Copy */}
           {jawaban && (
-            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl animate-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl animate-in slide-in-from-bottom-4 duration-500 text-left">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full font-bold uppercase tracking-widest">Result Ready</span>
                 <button 
