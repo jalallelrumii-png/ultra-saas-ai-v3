@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-export default function GuestManager() {
+export default function UltraSaaS() {
   const [masterData, setMasterData] = useState("");
   const [pertanyaan, setPertanyaan] = useState("");
   const [jawaban, setJawaban] = useState("");
@@ -20,7 +20,7 @@ export default function GuestManager() {
   }, [masterData]);
 
   const tanyaAI = async () => {
-    if (!pertanyaan) return alert("Isi pertanyaannya dulu, Bos!");
+    if (!pertanyaan) return;
     setLoading(true);
     setJawaban("");
     try {
@@ -32,7 +32,7 @@ export default function GuestManager() {
       const data = await res.json();
       setJawaban(data.jawaban || data.error);
     } catch (err) {
-      setJawaban("Error: Gagal konek ke server!");
+      setJawaban("System Connection Interrupted.");
     } finally {
       setLoading(false);
     }
@@ -44,65 +44,57 @@ export default function GuestManager() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleReset = () => {
+    if (window.confirm("Are you sure you want to clear all data? This action cannot be undone.")) {
+      setMasterData("");
+      localStorage.removeItem("masterDataTamu");
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white p-4 md:p-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <main className="min-h-screen bg-black text-white p-6 md:p-12 font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif]">
+      <div className="max-w-2xl mx-auto space-y-10">
         
-        {/* Header */}
-        <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
-          <div>
-            <h1 className="text-3xl font-black tracking-tighter text-blue-500">ULTRA AI SAAS V1</h1>
-            <p className="text-[10px] text-zinc-500 tracking-[0.3em] uppercase">Enterprise Data Assistant</p>
+        {/* Apple Style Header */}
+        <header className="flex justify-between items-end border-b border-zinc-800/50 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-transparent">
+              Ultra AI
+            </h1>
+            <p className="text-[11px] font-medium text-zinc-500 tracking-[0.2em] uppercase">Intelligence SaaS V1</p>
           </div>
-          
-          {/* TOMBOL RESET & TUTUP DATA DISINI */}
-          <div className="flex gap-2">
-            <button 
-              onClick={() => {
-                if(confirm("Hapus semua data tamu?")) {
-                  setMasterData("");
-                  localStorage.removeItem("masterDataTamu");
-                }
-              }}
-              className="text-[10px] bg-red-900/20 text-red-500 px-3 py-2 rounded-full hover:bg-red-900/40 transition border border-red-500/20 font-bold"
-            >
+          <div className="flex gap-3">
+            <button onClick={handleReset} className="text-[11px] font-semibold text-red-500 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-full transition-all active:scale-95 border border-red-500/20">
               RESET
             </button>
-            <button 
-              onClick={() => setShowPanel(!showPanel)}
-              className="text-xs bg-zinc-800 px-4 py-2 rounded-full hover:bg-zinc-700 transition font-bold text-blue-400"
-            >
-              {showPanel ? "TUTUP DATA" : "EDIT DATA"}
+            <button onClick={() => setShowPanel(!showPanel)} className="text-[11px] font-semibold text-white bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-full transition-all active:scale-95 border border-zinc-700">
+              {showPanel ? "HIDE PANEL" : "EDIT DATA"}
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Master Data Panel */}
+        {/* Master Data - iOS Glass Effect */}
         {showPanel && (
-          <div className="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 animate-in fade-in duration-500">
-            <label className="block text-xs font-bold mb-2 uppercase tracking-widest text-zinc-500 text-left">
-              Input Source Data (Excel/Text)
-            </label>
-            <textarea
-              className="w-full h-40 bg-black border border-zinc-800 rounded-xl p-4 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-300"
-              placeholder="Contoh: Budi - VIP - Hadir..."
-              value={masterData}
-              onChange={(e) => setMasterData(e.target.value)}
-            />
-          </div>
+          <section className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-700">
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Data Repository</label>
+            <div className="relative group">
+              <textarea
+                className="w-full h-44 bg-zinc-900/40 backdrop-blur-xl border border-zinc-800 rounded-2xl p-5 text-[15px] focus:ring-1 focus:ring-blue-500 outline-none transition shadow-inner text-zinc-200 leading-relaxed"
+                placeholder="Paste your Excel or Raw Data here..."
+                value={masterData}
+                onChange={(e) => setMasterData(e.target.value)}
+              />
+            </div>
+          </section>
         )}
 
-        {/* Chat Interface */}
-        <div className="space-y-4">
-          <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
-            <label className="block text-xs font-bold mb-3 uppercase text-blue-400 tracking-widest text-left">
-              Tanya Asisten AI
-            </label>
-            <div className="flex gap-3">
+        {/* Interaction Zone */}
+        <section className="space-y-6">
+          <div className="bg-gradient-to-b from-zinc-800/30 to-transparent p-[1px] rounded-[2.5rem]">
+            <div className="bg-zinc-900/80 backdrop-blur-2xl p-2 rounded-[2.45rem] shadow-2xl flex items-center">
               <input
-                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition"
-                placeholder="Siapa tamu yang belum datang?"
+                className="flex-1 bg-transparent border-none rounded-full px-6 py-4 focus:outline-none text-[16px] placeholder:text-zinc-600 font-medium"
+                placeholder="Ask anything..."
                 value={pertanyaan}
                 onChange={(e) => setPertanyaan(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && tanyaAI()}
@@ -110,34 +102,36 @@ export default function GuestManager() {
               <button
                 onClick={tanyaAI}
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 px-8 py-4 rounded-2xl font-black transition-all active:scale-95 shadow-lg shadow-blue-900/20"
+                className={`px-8 py-4 rounded-full font-bold transition-all active:scale-90 ${loading ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.3)]'}`}
               >
-                {loading ? "..." : "KIRIM"}
+                {loading ? "..." : "SEND"}
               </button>
             </div>
           </div>
 
-          {/* Jawaban AI & Tombol Copy */}
+          {/* AI Response - Apple Card Style */}
           {jawaban && (
-            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl animate-in slide-in-from-bottom-4 duration-500 text-left">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full font-bold uppercase tracking-widest">Result Ready</span>
+            <div className="bg-zinc-900/40 border border-zinc-800/50 p-8 rounded-[2rem] animate-in zoom-in-95 duration-500 shadow-2xl relative group">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-[10px] font-black text-blue-500 tracking-widest uppercase">Response Analysis</span>
                 <button 
                   onClick={copyToClipboard}
-                  className={`text-xs font-bold px-4 py-2 rounded-xl transition-all ${copied ? 'bg-green-600 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'}`}
+                  className={`text-[10px] font-bold px-4 py-2 rounded-full transition-all ${copied ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
                 >
-                  {copied ? "BERHASIL COPY!" : "COPY JAWABAN"}
+                  {copied ? "COPIED" : "COPY OUTPUT"}
                 </button>
               </div>
-              <div className="text-zinc-200 leading-relaxed text-lg font-medium">
+              <p className="text-zinc-100 text-[18px] leading-[1.6] font-medium tracking-tight">
                 {jawaban}
-              </div>
+              </p>
             </div>
           )}
-        </div>
+        </section>
 
-        <footer className="text-center text-zinc-700 text-[10px] pt-12 uppercase tracking-[0.4em]">
-          Product of Ultra AI • 2026 Edition
+        <footer className="pt-20 pb-10 text-center">
+          <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-[0.5em]">
+            Engineered by Ultra Labs • MMXXVI
+          </p>
         </footer>
       </div>
     </main>
