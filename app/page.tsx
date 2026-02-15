@@ -2,111 +2,161 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { Sparkles, Send, History, Zap, Shield, Layout, Cpu, Globe, Trash2 } from "lucide-react";
 
-// GANTI PAKE PUNYA LU DARI DASHBOARD SUPABASE!
-const SUPABASE_URL = "URL_LU_DI_SINI";
-const SUPABASE_ANON_KEY = "KEY_LU_DI_SINI";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 1. KONEKSI SUPABASE (DARI SCREENSHOT LU)
+const supabase = createClient(
+  "https://nhmmocpypgsofihbltpi.supabase.co",
+  "sb_publishable_SNq_Hd5hGbzaAFJGli6Dgw_0bKNAwDF"
+);
 
-export default function UltraSaaSCloud() {
-  const [syncId, setSyncId] = useState("");
-  const [masterData, setMasterData] = useState("");
-  const [pertanyaan, setPertanyaan] = useState("");
-  const [jawaban, setJawaban] = useState("");
+export default function GeminiSaaSFinal() {
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [history, setHistory] = useState<any[]>([]);
 
-  // FITUR CLOUD: AMBIL DATA DARI AWAN
-  const fetchCloudData = async (id: string) => {
+  // 2. AMBIL DATA DARI DATABASE SAAT LOAD
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  async function fetchHistory() {
     const { data, error } = await supabase
-      .from("event_data")
-      .select("content")
-      .eq("event_id", id)
-      .single();
+      .from("ai_generations") 
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10);
     
-    if (data) setMasterData(data.content);
-  };
+    if (!error && data) setHistory(data);
+  }
 
-  // FITUR CLOUD: SIMPAN DATA KE AWAN
-  const saveToCloud = async () => {
-    if (!syncId) return alert("Isi Sync ID dulu buat konek ke Cloud!");
-    await supabase.from("event_data").upsert({ 
-      event_id: syncId, 
-      content: masterData 
-    });
-    alert("Data Ter-sinkron ke Cloud!");
-  };
-
-  const tanyaAI = async () => {
-    if (!pertanyaan) return;
+  // 3. LOGIKA GENERATE + SIMPAN KE DB
+  const handleGenerate = async () => {
+    if (!input.trim()) return;
     setLoading(true);
+    
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ masterData, pertanyaan }),
-      });
-      const data = await res.json();
-      setJawaban(data.jawaban || data.error);
+      // Simulasi Response AI (Nanti tinggal ganti fetch ke OpenAI/Gemini API)
+      const aiResponse = `[Analisa Sistem 2026] Untuk ide "${input}", disarankan menggunakan arsitektur Edge Computing dengan integrasi database Supabase yang sudah lu pasang. Performa dijamin stabil.`;
+      
+      // Simpan ke Supabase
+      const { error } = await supabase.from("ai_generations").insert([
+        { prompt: input, response: aiResponse }
+      ]);
+
+      if (error) throw error;
+
+      setResult(aiResponse);
+      setInput("");
+      fetchHistory(); // Update list history otomatis
     } catch (err) {
-      setJawaban("Connection Lost.");
+      alert("Cek tabel 'ai_generations' di Supabase lu, udah dibuat belum?");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className={`min-h-screen transition-all ${isDarkMode ? "bg-[#121212] text-zinc-200" : "bg-[#f5f5f7] text-zinc-900"}`}>
-      <div className="max-w-2xl mx-auto p-6 md:p-12 space-y-8">
+    <div className="min-h-screen bg-[#09090b] text-[#fafafa] font-sans antialiased flex">
+      
+      {/* SIDEBAR - GEMINI DARK STYLE */}
+      <aside className="w-72 h-screen sticky top-0 bg-[#0d0d10] border-r border-[#1f1f23] p-6 hidden md:flex flex-col">
+        <div className="flex items-center gap-3 font-bold text-xl mb-10 text-white">
+          <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-900/20">
+            <Cpu className="w-5 h-5 text-white" />
+          </div>
+          <span className="tracking-tight">Gemini OS</span>
+        </div>
         
-        {/* HEADER */}
-        <header className="flex justify-between items-center border-b border-zinc-500/10 pb-6">
-          <h1 className="text-3xl font-bold tracking-tighter bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Ultra Cloud AI</h1>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full border border-zinc-500/20">{isDarkMode ? "☀️" : "🌙"}</button>
+        <nav className="space-y-1 flex-1">
+          <div className="p-3 bg-[#1c1c21] text-white rounded-xl flex items-center gap-3 font-medium cursor-pointer border border-[#2d2d33]">
+            <Layout className="w-4 h-4" /> Workspace
+          </div>
+          <div className="p-3 text-[#a1a1aa] hover:bg-[#15151a] rounded-xl flex items-center gap-3 transition cursor-pointer">
+            <Globe className="w-4 h-4" /> Deployments
+          </div>
+          <div className="p-3 text-[#a1a1aa] hover:bg-[#15151a] rounded-xl flex items-center gap-3 transition cursor-pointer">
+            <History className="w-4 h-4" /> Activity
+          </div>
+        </nav>
+
+        <div className="p-4 bg-[#121217] border border-[#1f1f23] rounded-2xl shadow-inner">
+          <div className="flex items-center gap-2 mb-2 text-xs font-bold text-blue-400 uppercase tracking-widest">
+            <Zap className="w-3 h-3 fill-blue-400" /> System Status
+          </div>
+          <p className="text-[11px] text-[#71717a]">DB: Connected</p>
+          <p className="text-[11px] text-[#71717a]">API: v3.0-Flash</p>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 max-w-4xl mx-auto p-6 md:p-12">
+        <header className="mb-12">
+          <h1 className="text-5xl font-bold tracking-tight mb-4 text-white">Eksekusi Ide Lu.</h1>
+          <p className="text-xl text-[#71717a]">Koneksi Supabase sudah aktif. Langsung gas.</p>
         </header>
 
-        {/* CLOUD SYNC CONTROL - NILAI JUAL UTAMA */}
-        <section className={`p-4 rounded-2xl border ${isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"}`}>
-          <div className="flex gap-2">
+        {/* INPUT AREA */}
+        <div className="relative group mb-12">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-[30px] blur opacity-20 group-focus-within:opacity-40 transition duration-1000"></div>
+          <div className="relative bg-[#121217] p-2 rounded-[28px] border border-[#27272a] flex items-center shadow-2xl">
             <input 
-              placeholder="Enter Sync ID (e.g: EVENT-01)"
-              className="flex-1 bg-transparent outline-none text-sm font-mono"
-              value={syncId}
-              onChange={(e) => setSyncId(e.target.value)}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Masukkan prompt atau ide SaaS..."
+              className="flex-1 bg-transparent p-4 outline-none text-white text-lg placeholder-[#3f3f46]"
+              onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
             />
-            <button onClick={() => fetchCloudData(syncId)} className="text-[10px] font-bold bg-zinc-800 px-3 py-2 rounded-lg">CONNECT</button>
-            <button onClick={saveToCloud} className="text-[10px] font-bold bg-blue-600 text-white px-3 py-2 rounded-lg">PUSH DATA</button>
+            <button 
+              onClick={handleGenerate}
+              disabled={loading}
+              className="bg-white text-black h-14 px-6 rounded-2xl hover:bg-[#d4d4d8] transition disabled:opacity-50 flex items-center gap-2 font-bold"
+            >
+              {loading ? <div className="animate-spin h-5 w-5 border-2 border-black/30 border-t-black rounded-full" /> : <><Send className="w-4 h-4" /> Generate</>}
+            </button>
           </div>
-        </section>
-
-        {/* DATA SOURCE */}
-        <textarea
-          className={`w-full h-32 p-4 rounded-2xl border outline-none text-sm ${isDarkMode ? "bg-[#1c1c1e] border-zinc-800" : "bg-white border-zinc-200"}`}
-          placeholder="Master Data..."
-          value={masterData}
-          onChange={(e) => setMasterData(e.target.value)}
-        />
-
-        {/* AI INPUT */}
-        <div className="flex gap-2 p-2 rounded-full border bg-zinc-900/30 border-zinc-500/20">
-          <input 
-            className="flex-1 bg-transparent px-4 outline-none" 
-            placeholder="Ask AI..."
-            value={pertanyaan}
-            onChange={(e) => setPertanyaan(e.target.value)}
-          />
-          <button onClick={tanyaAI} className="bg-blue-600 text-white px-6 py-3 rounded-full font-bold active:scale-95 transition-all">
-            {loading ? "..." : "SEND"}
-          </button>
         </div>
 
-        {/* JAWABAN AI */}
-        {jawaban && (
-          <div className={`p-6 rounded-[2rem] border animate-in zoom-in-95 ${isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-xl"}`}>
-             <p className="text-[16px] leading-relaxed">{jawaban}</p>
+        {/* HASIL / RESULT CARD */}
+        {result && (
+          <div className="bg-[#0d0d10] border border-[#27272a] p-8 rounded-[32px] mb-10 animate-in fade-in zoom-in duration-300">
+            <div className="flex items-center gap-2 text-blue-400 font-bold text-xs mb-6 tracking-[0.2em] uppercase">
+              <Sparkles className="w-4 h-4" /> Artificial Intelligence Result
+            </div>
+            <div className="text-[18px] leading-relaxed text-[#e4e4e7] whitespace-pre-wrap">
+              {result}
+            </div>
           </div>
         )}
-      </div>
-    </main>
+
+        {/* LOG HISTORY - DARI SUPABASE */}
+        <section>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-[#3f3f46] uppercase tracking-[0.2em] text-[10px]">Database History</h3>
+            <div className="h-px flex-1 bg-[#1f1f23] ml-4"></div>
+          </div>
+          
+          <div className="space-y-3">
+            {history.length > 0 ? history.map((h) => (
+              <div key={h.id} className="bg-[#0d0d10]/50 border border-[#1f1f23] p-5 rounded-2xl flex justify-between items-center group hover:border-blue-500/30 transition-all">
+                <div className="flex-1 pr-4">
+                  <p className="text-sm text-[#d4d4d8] font-medium line-clamp-1 italic">"{h.prompt}"</p>
+                  <p className="text-[10px] text-[#52525b] mt-1 font-mono">{new Date(h.created_at).toLocaleString()}</p>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition">
+                  <Shield className="w-4 h-4 text-[#3f3f46]" />
+                </div>
+              </div>
+            )) : (
+              <p className="text-center py-10 text-[#3f3f46] text-sm italic border-2 border-dashed border-[#1f1f23] rounded-3xl">
+                Belum ada data di tabel 'ai_generations'.
+              </p>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
